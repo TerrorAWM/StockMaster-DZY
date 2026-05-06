@@ -9,11 +9,10 @@ Architecture:
 - Eureka service registry
 - Spring Cloud Config backed by a Git config repository
 - User, product, order, and stock microservices
-- MySQL deployed in Kubernetes
-- Kubernetes manifests for VM-based deployment
+- MySQL deployed by Docker Compose
+- Docker Compose deployment for local or single-server demos
 
 Default admin account:
 
 - Username: `admin`
 - Password: `admin123`
-

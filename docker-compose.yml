@@ -1,0 +1,145 @@
+services:
+  mysql:
+    image: mysql:8.0.26
+    container_name: stockmaster-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./k8s/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  eureka-service:
+    build: ./backend/eureka-service
+    image: stockmaster/eureka-service:local
+    container_name: stockmaster-eureka
+    ports:
+      - "8761:8761"
+
+  config-service:
+    build: ./backend/config-service
+    image: stockmaster/config-service:local
+    container_name: stockmaster-config
+    depends_on:
+      - eureka-service
+    environment:
+      SPRING_PROFILES_ACTIVE: native
+      SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS: file:/app/config-repo
+      EUREKA_URL: http://eureka-service:8761/eureka/
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./config-repo:/app/config-repo:ro
+
+  gateway-service:
+    build: ./backend/gateway-service
+    image: stockmaster/gateway-service:local
+    container_name: stockmaster-gateway
+    depends_on:
+      - eureka-service
+      - config-service
+    environment:
+      CONFIG_URL: http://config-service:8888
+      EUREKA_URL: http://eureka-service:8761/eureka/
+      JWT_SECRET: stockmaster-docker-secret
+    ports:
+      - "8080:8080"
+
+  user-service:
+    build: ./backend/user-service
+    image: stockmaster/user-service:local
+    container_name: stockmaster-user
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-service:
+        condition: service_started
+      config-service:
+        condition: service_started
+    environment:
+      CONFIG_URL: http://config-service:8888
+      EUREKA_URL: http://eureka-service:8761/eureka/
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      USER_DB_URL: jdbc:mysql://mysql:3306/stockmaster_user?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+      JWT_SECRET: stockmaster-docker-secret
+
+  product-service:
+    build: ./backend/product-service
+    image: stockmaster/product-service:local
+    container_name: stockmaster-product
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-service:
+        condition: service_started
+      config-service:
+        condition: service_started
+    environment:
+      CONFIG_URL: http://config-service:8888
+      EUREKA_URL: http://eureka-service:8761/eureka/
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      PRODUCT_DB_URL: jdbc:mysql://mysql:3306/stockmaster_product?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+
+  stock-service:
+    build: ./backend/stock-service
+    image: stockmaster/stock-service:local
+    container_name: stockmaster-stock
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-service:
+        condition: service_started
+      config-service:
+        condition: service_started
+      product-service:
+        condition: service_started
+    environment:
+      CONFIG_URL: http://config-service:8888
+      EUREKA_URL: http://eureka-service:8761/eureka/
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      STOCK_DB_URL: jdbc:mysql://mysql:3306/stockmaster_stock?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+
+  order-service:
+    build: ./backend/order-service
+    image: stockmaster/order-service:local
+    container_name: stockmaster-order
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-service:
+        condition: service_started
+      config-service:
+        condition: service_started
+      product-service:
+        condition: service_started
+      stock-service:
+        condition: service_started
+    environment:
+      CONFIG_URL: http://config-service:8888
+      EUREKA_URL: http://eureka-service:8761/eureka/
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      ORDER_DB_URL: jdbc:mysql://mysql:3306/stockmaster_order?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+
+  frontend-nginx:
+    build: ./frontend
+    image: stockmaster/frontend-nginx:local
+    container_name: stockmaster-frontend
+    depends_on:
+      - gateway-service
+    ports:
+      - "30081:80"
+
+volumes:
+  mysql-data:
+

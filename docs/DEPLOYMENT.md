@@ -11,21 +11,22 @@ npm install
 npm run build
 ```
 
-## Kubernetes 部署顺序
+## Docker Compose 部署顺序
 
 ```bash
-cd k8s
-kubectl apply -f namespace.yaml
-kubectl apply -f mysql/mysql.yaml
-kubectl apply -f services/base-config.yaml
-kubectl apply -f services/apps.yaml
+cd backend
+mvn -DskipTests package
+
+cd ..
+docker compose up -d --build
 ```
 
 访问地址：
 
-- 前端后台：`http://<任意节点IP>:30081`
-- Gateway：`http://<任意节点IP>:30080`
-- Eureka：`http://<任意节点IP>:30761`
+- 前端后台：`http://localhost:30081`
+- Gateway：`http://localhost:8080`
+- Eureka：`http://localhost:8761`
+- Config：`http://localhost:8888`
 
 默认账号：
 
@@ -33,17 +34,17 @@ kubectl apply -f services/apps.yaml
 
 ## GitHub Actions CI/CD
 
-项目使用 GitHub Actions，不再需要 Jenkins。
+项目使用 GitHub Actions，不需要 Jenkins，也不要求虚拟机 Kubernetes。
 
 - `.github/workflows/ci.yml`：push/PR 时构建后端和前端。
 - `.github/workflows/images.yml`：push 到 `main` 时构建镜像并推送到 GHCR。
-- `.github/workflows/deploy.yml`：手动触发部署，运行在 `k8s-master` 上的 self-hosted runner。
+- `.github/workflows/compose-check.yml`：手动触发，校验 Docker Compose 配置。
 
 私有库支持 GitHub Actions，但会消耗 GitHub 账号的 Actions 分钟数。镜像推送使用仓库自带的 `GITHUB_TOKEN`，不需要额外配置 Docker 密码。
 
 ## 镜像说明
 
-K8s 文件默认使用这些镜像名：
+GitHub Actions 会构建并推送这些 Docker 镜像：
 
 - `ghcr.io/terrorawm/stockmaster-eureka-service:latest`
 - `ghcr.io/terrorawm/stockmaster-config-service:latest`
@@ -54,24 +55,32 @@ K8s 文件默认使用这些镜像名：
 - `ghcr.io/terrorawm/stockmaster-order-service:latest`
 - `ghcr.io/terrorawm/stockmaster-frontend-nginx:latest`
 
-如果 GHCR package 是私有的，Kubernetes 集群需要配置 `imagePullSecret` 才能拉取镜像。最简单做法是在 GitHub Packages 中把这些镜像改为 public；如果保持 private，则需要创建 GHCR token 并在集群中创建拉取密钥。
+如果 GHCR package 是私有的，其他机器 `docker pull` 前需要先登录：
 
-## Self-hosted runner
+```bash
+echo <GITHUB_TOKEN> | docker login ghcr.io -u <GITHUB_USERNAME> --password-stdin
+```
 
-部署 workflow 需要在 `k8s-master` 上安装 GitHub self-hosted runner，并保证：
+## Docker Compose 说明
 
-- runner 标签包含默认的 `self-hosted`。
-- `kubectl` 可用。
-- 当前用户能访问 Kubernetes 集群。
-- `k8s-master` 能访问 `ghcr.io` 拉取镜像。
+`docker-compose.yml` 会启动：
+
+- MySQL 8.0.26
+- Eureka
+- Config Server
+- Gateway
+- user/product/order/stock 微服务
+- Vue 前端 Nginx
+
+Config Server 在 Docker Compose 中使用 `native` 模式，直接挂载本仓库的 `config-repo/` 目录，不需要额外创建 Git 配置仓库。
 
 ## Config 配置中心
 
-`config-service` 从当前 GitHub 仓库读取 `config-repo/` 下的配置文件：
+Docker Compose 部署时，`config-service` 通过挂载目录读取 `config-repo/` 下的配置文件：
 
 ```text
-CONFIG_GIT_URI=https://github.com/TerrorAWM/StockMaster-DZY.git
-CONFIG_GIT_SEARCH_PATHS=config-repo
+SPRING_PROFILES_ACTIVE=native
+SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS=file:/app/config-repo
 ```
 
-如果 GitHub 私有仓库在集群内无法直接拉取，需要给 Config Server 配置 Git 用户名和 Token，或者把配置仓库改成集群可访问的内部 Git 地址。
+这样不依赖额外的 Git 配置仓库，也不需要在容器里配置 GitHub Token。

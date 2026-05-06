@@ -19,8 +19,8 @@ MySQL
 - Eureka：服务注册与发现。
 - Config Server：从 Git 仓库拉取配置。
 - OpenFeign：服务间调用。
-- Kubernetes：Pod 编排、Service 暴露、MySQL 持久化。
-- GitHub Actions：CI、镜像构建发布、触发 K8s 部署。
+- Docker Compose：本地或单服务器编排全部容器。
+- GitHub Actions：CI 和 Docker 镜像构建发布。
 
 ## 服务职责
 
