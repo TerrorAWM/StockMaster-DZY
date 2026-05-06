@@ -1,0 +1,34 @@
+# 自动更新覆盖文件
+# 使用方式：
+#   docker compose -f docker-compose.yml -f docker-compose.watch.yml up -d
+#
+# 前提：容器必须使用 GHCR 镜像标签（ghcr.io/terrorawm/...），
+#       本地 build 标签（stockmaster/*:local）无法从远程检测更新。
+#
+# GHCR 为私有仓库时，先登录再启动：
+#   docker login ghcr.io -u <用户名> -p <GITHUB_TOKEN>
+#
+# 更改检查间隔（秒）：在 .env 文件里设置 WATCHTOWER_INTERVAL=600
+
+services:
+  watchtower:
+    image: containrrr/watchtower
+    container_name: stockmaster-watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      WATCHTOWER_POLL_INTERVAL: "${WATCHTOWER_INTERVAL:-300}"
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_INCLUDE_STOPPED: "false"
+      WATCHTOWER_NO_STARTUP_MESSAGE: "false"
+    # 只监听这 8 个容器，不动 MySQL
+    command: >
+      stockmaster-eureka
+      stockmaster-config
+      stockmaster-gateway
+      stockmaster-user
+      stockmaster-product
+      stockmaster-stock
+      stockmaster-order
+      stockmaster-frontend
