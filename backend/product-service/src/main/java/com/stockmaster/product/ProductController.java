@@ -51,4 +51,16 @@ public class ProductController {
         product.setEnabled(request.isEnabled());
         return ApiResponse.ok(products.save(product));
     }
+
+    @DeleteMapping("/products/{id}")
+    public ApiResponse<Void> delete(@RequestHeader("X-Role") String role, @PathVariable("id") Long id) {
+        if (!"admin".equals(role)) {
+            return ApiResponse.fail("无权限");
+        }
+        if (!products.existsById(id)) {
+            return ApiResponse.fail("商品不存在");
+        }
+        products.deleteById(id);
+        return ApiResponse.ok(null);
+    }
 }
