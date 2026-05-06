@@ -62,7 +62,7 @@ public class UserController {
     }
 
     @PatchMapping("/users/{id}/status")
-    public ApiResponse<Void> status(@RequestHeader("X-Role") String role, @PathVariable Long id, @RequestBody StatusRequest request) {
+    public ApiResponse<Void> status(@RequestHeader("X-Role") String role, @PathVariable("id") Long id, @RequestBody StatusRequest request) {
         if (!"admin".equals(role)) {
             return ApiResponse.fail("无权限");
         }
@@ -93,4 +93,3 @@ public class UserController {
     public record CreateUserRequest(String username, String password, String role) {}
     public record StatusRequest(boolean enabled) {}
 }
-

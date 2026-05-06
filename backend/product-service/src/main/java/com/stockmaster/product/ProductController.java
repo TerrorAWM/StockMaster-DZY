@@ -19,7 +19,7 @@ public class ProductController {
     }
 
     @GetMapping("/products/{id}")
-    public ApiResponse<Product> get(@PathVariable Long id) {
+    public ApiResponse<Product> get(@PathVariable("id") Long id) {
         return products.findById(id).map(ApiResponse::ok).orElseGet(() -> ApiResponse.fail("商品不存在"));
     }
 
@@ -36,7 +36,7 @@ public class ProductController {
     }
 
     @PutMapping("/products/{id}")
-    public ApiResponse<Product> update(@RequestHeader("X-Role") String role, @PathVariable Long id, @RequestBody Product request) {
+    public ApiResponse<Product> update(@RequestHeader("X-Role") String role, @PathVariable("id") Long id, @RequestBody Product request) {
         if (!"admin".equals(role)) {
             return ApiResponse.fail("无权限");
         }
@@ -52,4 +52,3 @@ public class ProductController {
         return ApiResponse.ok(products.save(product));
     }
 }
-
