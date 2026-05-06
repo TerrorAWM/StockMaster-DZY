@@ -20,6 +20,7 @@ MySQL
 - Config Server：从 Git 仓库拉取配置。
 - OpenFeign：服务间调用。
 - Kubernetes：Pod 编排、Service 暴露、MySQL 持久化。
+- GitHub Actions：CI、镜像构建发布、触发 K8s 部署。
 
 ## 服务职责
 
@@ -48,4 +49,3 @@ order-service → stock-service 扣减库存
 库存不足则返回业务错误
 order-service 保存出库流水
 ```
-

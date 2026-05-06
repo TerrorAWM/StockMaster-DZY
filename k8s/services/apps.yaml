@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: eureka-service
-          image: stockmaster/eureka-service:latest
+          image: ghcr.io/terrorawm/stockmaster-eureka-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8761
@@ -51,7 +51,7 @@ spec:
     spec:
       containers:
         - name: config-service
-          image: stockmaster/config-service:latest
+          image: ghcr.io/terrorawm/stockmaster-config-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8888
@@ -95,7 +95,7 @@ spec:
     spec:
       containers:
         - name: gateway-service
-          image: stockmaster/gateway-service:latest
+          image: ghcr.io/terrorawm/stockmaster-gateway-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
@@ -136,7 +136,7 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: stockmaster/user-service:latest
+          image: ghcr.io/terrorawm/stockmaster-user-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081
@@ -175,7 +175,7 @@ spec:
     spec:
       containers:
         - name: product-service
-          image: stockmaster/product-service:latest
+          image: ghcr.io/terrorawm/stockmaster-product-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8082
@@ -214,7 +214,7 @@ spec:
     spec:
       containers:
         - name: stock-service
-          image: stockmaster/stock-service:latest
+          image: ghcr.io/terrorawm/stockmaster-stock-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8083
@@ -253,7 +253,7 @@ spec:
     spec:
       containers:
         - name: order-service
-          image: stockmaster/order-service:latest
+          image: ghcr.io/terrorawm/stockmaster-order-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8084
@@ -292,7 +292,7 @@ spec:
     spec:
       containers:
         - name: frontend-nginx
-          image: stockmaster/frontend-nginx:latest
+          image: ghcr.io/terrorawm/stockmaster-frontend-nginx:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
@@ -310,4 +310,3 @@ spec:
       targetPort: 80
       nodePort: 30081
   type: NodePort
-
