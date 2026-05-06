@@ -6,4 +6,6 @@ dist/
 *.iml
 *.log
 .env
-
+docker-images/
+*.tar
+*.tar.gz
