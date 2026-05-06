@@ -27,6 +27,7 @@ docker compose up -d --build
 - Gateway：`http://localhost:8080`
 - Eureka：`http://localhost:8761`
 - Config：`http://localhost:8888`
+- MySQL：`127.0.0.1:13306`，用户 `root`，密码 `root`
 
 默认账号：
 
@@ -65,7 +66,7 @@ echo <GITHUB_TOKEN> | docker login ghcr.io -u <GITHUB_USERNAME> --password-stdin
 
 `docker-compose.yml` 会启动：
 
-- MySQL 8.0.26
+- MySQL 8.0
 - Eureka
 - Config Server
 - Gateway
