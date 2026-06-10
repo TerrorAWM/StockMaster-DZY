@@ -19,8 +19,7 @@ jobs:
 
       - name: Build backend jars
         working-directory: backend
-        run: mvn -DskipTests package
+        run: mvn --batch-mode verify
 
       - name: Validate Docker Compose config
         run: docker compose config
-

@@ -1,8 +1,6 @@
-name: CI
+name: Pull Request Validation
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 
@@ -20,9 +18,9 @@ jobs:
           java-version: '17'
           cache: maven
 
-      - name: Build backend
+      - name: Test and build backend
         working-directory: backend
-        run: mvn -DskipTests package
+        run: mvn --batch-mode verify
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -37,3 +35,5 @@ jobs:
           npm ci
           npm run build
 
+      - name: Validate Kubernetes production manifests
+        run: kubectl kustomize k8s > /tmp/stockmaster-k8s.yaml

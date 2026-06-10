@@ -15,10 +15,11 @@ metadata:
   namespace: stockmaster
 data:
   EUREKA_URL: http://eureka-service:8761/eureka/
+  EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
   CONFIG_URL: http://config-service:8888
+  SPRING_CONFIG_IMPORT: configserver:http://config-service:8888
   MYSQL_USER: root
   USER_DB_URL: jdbc:mysql://mysql:3306/stockmaster_user?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
   PRODUCT_DB_URL: jdbc:mysql://mysql:3306/stockmaster_product?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
   STOCK_DB_URL: jdbc:mysql://mysql:3306/stockmaster_stock?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
   ORDER_DB_URL: jdbc:mysql://mysql:3306/stockmaster_order?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
-

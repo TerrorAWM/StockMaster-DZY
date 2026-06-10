@@ -1,4 +1,4 @@
-name: Build Docker Images
+name: StockMaster CI CD
 
 on:
   push:
@@ -12,12 +12,14 @@ permissions:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAMESPACE: terrorawm
+  K8S_NAMESPACE: stockmaster
 
 jobs:
-  images:
+  test:
+    name: 1 Test and Package
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout source
         uses: actions/checkout@v4
 
       - name: Set up Java
@@ -27,9 +29,44 @@ jobs:
           java-version: '17'
           cache: maven
 
-      - name: Build backend jars
+      - name: Run backend tests and package jars
         working-directory: backend
-        run: mvn -DskipTests package
+        run: mvn --batch-mode verify
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Validate Kubernetes manifests
+        run: kubectl kustomize k8s > /tmp/stockmaster-k8s.yaml
+
+  images:
+    name: 2 Build and Push Images
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Package backend jars
+        working-directory: backend
+        run: mvn --batch-mode -DskipTests package
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -54,3 +91,43 @@ jobs:
           docker push "${image}:latest"
           docker push "${image}:${GITHUB_SHA}"
 
+  deploy:
+    name: 3 Deploy and Verify Kubernetes
+    needs: images
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Configure Kubernetes connection
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        run: |
+          mkdir -p "${HOME}/.kube"
+          echo "${KUBE_CONFIG}" | base64 --decode > "${HOME}/.kube/config"
+          chmod 600 "${HOME}/.kube/config"
+          kubectl cluster-info
+          kubectl get nodes -o wide
+
+      - name: Apply Kubernetes production manifests
+        run: kubectl apply -k k8s
+
+      - name: Deploy commit images
+        run: |
+          for service in eureka-service config-service gateway-service user-service product-service stock-service order-service; do
+            kubectl set image "deployment/${service}" "${service}=${REGISTRY}/${IMAGE_NAMESPACE}/stockmaster-${service}:${GITHUB_SHA}" -n "${K8S_NAMESPACE}"
+          done
+          kubectl set image deployment/frontend-nginx "frontend-nginx=${REGISTRY}/${IMAGE_NAMESPACE}/stockmaster-frontend-nginx:${GITHUB_SHA}" -n "${K8S_NAMESPACE}"
+
+      - name: Wait for rollouts
+        run: |
+          kubectl rollout status statefulset/mysql -n "${K8S_NAMESPACE}" --timeout=300s
+          for service in eureka-service config-service gateway-service user-service product-service stock-service order-service frontend-nginx; do
+            kubectl rollout status "deployment/${service}" -n "${K8S_NAMESPACE}" --timeout=300s
+          done
+
+      - name: Show deployment result
+        run: |
+          kubectl get nodes -o wide
+          kubectl get pods,deployments,statefulsets,services -n "${K8S_NAMESPACE}" -o wide

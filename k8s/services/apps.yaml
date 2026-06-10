@@ -16,7 +16,7 @@ spec:
       containers:
         - name: eureka-service
           image: ghcr.io/terrorawm/stockmaster-eureka-service:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8761
 ---
@@ -52,19 +52,27 @@ spec:
       containers:
         - name: config-service
           image: ghcr.io/terrorawm/stockmaster-config-service:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8888
           env:
-            - name: CONFIG_GIT_URI
-              value: https://github.com/TerrorAWM/StockMaster-DZY.git
-            - name: CONFIG_GIT_SEARCH_PATHS
-              value: config-repo
+            - name: SPRING_PROFILES_ACTIVE
+              value: native
+            - name: SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS
+              value: file:/app/config-repo
             - name: EUREKA_URL
               valueFrom:
                 configMapKeyRef:
                   name: stockmaster-config
                   key: EUREKA_URL
+          volumeMounts:
+            - name: config-repo
+              mountPath: /app/config-repo
+              readOnly: true
+      volumes:
+        - name: config-repo
+          configMap:
+            name: stockmaster-config-repo
 ---
 apiVersion: v1
 kind: Service
@@ -96,7 +104,7 @@ spec:
       containers:
         - name: gateway-service
           image: ghcr.io/terrorawm/stockmaster-gateway-service:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           envFrom:
@@ -137,7 +145,7 @@ spec:
       containers:
         - name: user-service
           image: ghcr.io/terrorawm/stockmaster-user-service:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8081
           envFrom:
@@ -176,7 +184,7 @@ spec:
       containers:
         - name: product-service
           image: ghcr.io/terrorawm/stockmaster-product-service:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8082
           envFrom:
@@ -215,7 +223,7 @@ spec:
       containers:
         - name: stock-service
           image: ghcr.io/terrorawm/stockmaster-stock-service:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8083
           envFrom:
@@ -254,7 +262,7 @@ spec:
       containers:
         - name: order-service
           image: ghcr.io/terrorawm/stockmaster-order-service:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8084
           envFrom:
@@ -293,7 +301,7 @@ spec:
       containers:
         - name: frontend-nginx
           image: ghcr.io/terrorawm/stockmaster-frontend-nginx:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
 ---

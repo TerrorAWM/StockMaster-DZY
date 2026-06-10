@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - mysql/mysql.yaml
+  - services/base-config.yaml
+  - services/apps.yaml
+configMapGenerator:
+  - name: stockmaster-config-repo
+    namespace: stockmaster
+    files:
+      - gateway-service.yml=config-repo/gateway-service.yml
+      - order-service.yml=config-repo/order-service.yml
+      - product-service.yml=config-repo/product-service.yml
+      - stock-service.yml=config-repo/stock-service.yml
+      - user-service.yml=config-repo/user-service.yml
+patches:
+  - path: production/deployment-production.yaml
+    target:
+      kind: Deployment
+  - path: production/mysql-production.yaml
+    target:
+      kind: StatefulSet
+      name: mysql
+  - path: production/scalable-replicas.yaml
+    target:
+      kind: Deployment
+      name: gateway-service|user-service|product-service|stock-service|order-service|frontend-nginx

@@ -1,0 +1,32 @@
+- op: add
+  path: /spec/template/spec/containers/0/ports/0/name
+  value: mysql
+- op: add
+  path: /spec/template/spec/containers/0/startupProbe
+  value:
+    tcpSocket:
+      port: mysql
+    failureThreshold: 30
+    periodSeconds: 5
+- op: add
+  path: /spec/template/spec/containers/0/readinessProbe
+  value:
+    tcpSocket:
+      port: mysql
+    periodSeconds: 10
+- op: add
+  path: /spec/template/spec/containers/0/livenessProbe
+  value:
+    tcpSocket:
+      port: mysql
+    initialDelaySeconds: 30
+    periodSeconds: 20
+- op: add
+  path: /spec/template/spec/containers/0/resources
+  value:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi

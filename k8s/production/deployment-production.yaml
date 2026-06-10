@@ -1,0 +1,48 @@
+- op: replace
+  path: /spec/template/spec/containers/0/imagePullPolicy
+  value: Always
+- op: add
+  path: /spec/template/spec/containers/0/ports/0/name
+  value: http
+- op: add
+  path: /spec/template/spec/containers/0/startupProbe
+  value:
+    tcpSocket:
+      port: http
+    failureThreshold: 30
+    periodSeconds: 5
+- op: add
+  path: /spec/template/spec/containers/0/readinessProbe
+  value:
+    tcpSocket:
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    failureThreshold: 3
+- op: add
+  path: /spec/template/spec/containers/0/livenessProbe
+  value:
+    tcpSocket:
+      port: http
+    initialDelaySeconds: 30
+    periodSeconds: 20
+    failureThreshold: 3
+- op: add
+  path: /spec/template/spec/containers/0/resources
+  value:
+    requests:
+      cpu: 100m
+      memory: 192Mi
+    limits:
+      cpu: 750m
+      memory: 768Mi
+- op: add
+  path: /spec/template/spec/topologySpreadConstraints
+  value:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels: {}
+      matchLabelKeys:
+        - pod-template-hash

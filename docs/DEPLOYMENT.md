@@ -35,11 +35,14 @@ docker compose up -d --build
 
 ## GitHub Actions CI/CD
 
-项目使用 GitHub Actions，不需要 Jenkins，也不要求虚拟机 Kubernetes。
+项目使用 GitHub Actions 展示可视化 CI/CD，并将镜像自动部署到虚拟机 Kubernetes 集群。
 
 - `.github/workflows/ci.yml`：push/PR 时构建后端和前端。
 - `.github/workflows/images.yml`：push 到 `main` 时构建镜像并推送到 GHCR。
 - `.github/workflows/compose-check.yml`：手动触发，校验 Docker Compose 配置。
+- `.github/workflows/images.yml`：执行测试、构建推送镜像，并自动部署和验证 Kubernetes。
+
+虚拟机集群搭建和 GitHub Secret 配置见 `docs/K8S-VM-GUIDE.md`。
 
 私有库支持 GitHub Actions，但会消耗 GitHub 账号的 Actions 分钟数。镜像推送使用仓库自带的 `GITHUB_TOKEN`，不需要额外配置 Docker 密码。
 
@@ -73,7 +76,7 @@ echo <GITHUB_TOKEN> | docker login ghcr.io -u <GITHUB_USERNAME> --password-stdin
 - user/product/order/stock 微服务
 - Vue 前端 Nginx
 
-Config Server 在 Docker Compose 中使用 `native` 模式，直接挂载本仓库的 `config-repo/` 目录，不需要额外创建 Git 配置仓库。
+Config Server 在 Docker Compose 和 Kubernetes 中均使用 `native` 模式。Kubernetes 通过 Kustomize 将本仓库的 `config-repo/` 生成为 ConfigMap 并挂载，不依赖运行时访问私有 Git 仓库。
 
 ## Config 配置中心
 

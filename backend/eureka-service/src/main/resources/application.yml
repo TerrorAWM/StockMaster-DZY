@@ -12,3 +12,8 @@ eureka:
   instance:
     hostname: eureka-service
 
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true

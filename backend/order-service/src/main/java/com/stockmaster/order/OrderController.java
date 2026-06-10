@@ -10,13 +10,11 @@ import java.util.Map;
 @RestController
 public class OrderController {
     private final OrderRepository orders;
-    private final ProductClient products;
-    private final StockClient stocks;
+    private final RemoteServiceGateway remoteServices;
 
-    public OrderController(OrderRepository orders, ProductClient products, StockClient stocks) {
+    public OrderController(OrderRepository orders, RemoteServiceGateway remoteServices) {
         this.orders = orders;
-        this.products = products;
-        this.stocks = stocks;
+        this.remoteServices = remoteServices;
     }
 
     @GetMapping("/orders")
@@ -40,12 +38,12 @@ public class OrderController {
         if (request.quantity() == null || request.quantity() <= 0) {
             return ApiResponse.fail("数量必须大于 0");
         }
-        ApiResponse<Map<String, Object>> product = products.get(request.productId());
+        ApiResponse<Map<String, Object>> product = remoteServices.getProduct(request.productId());
         if (product.code() != 0 || product.data() == null) {
-            return ApiResponse.fail("商品不存在");
+            return ApiResponse.fail(product.message());
         }
         int delta = "INBOUND".equals(type) ? request.quantity() : -request.quantity();
-        ApiResponse<Map<String, Object>> changed = stocks.change(new StockClient.ChangeStockRequest(request.productId(), delta));
+        ApiResponse<Map<String, Object>> changed = remoteServices.changeStock(new StockClient.ChangeStockRequest(request.productId(), delta));
         if (changed.code() != 0) {
             return ApiResponse.fail(changed.message());
         }
@@ -60,4 +58,3 @@ public class OrderController {
 
     public record OrderRequest(Long productId, Integer quantity, String remark) {}
 }
-
