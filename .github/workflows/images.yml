@@ -46,6 +46,9 @@ jobs:
           npm ci
           npm run build
 
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+
       - name: Validate Kubernetes manifests
         run: kubectl kustomize k8s > /tmp/stockmaster-k8s.yaml
 
@@ -99,6 +102,9 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
 
       - name: Configure Kubernetes connection
         env:
