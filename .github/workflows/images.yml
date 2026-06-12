@@ -55,7 +55,7 @@ jobs:
   images:
     name: 2 Build and Push Images
     needs: test
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -97,27 +97,15 @@ jobs:
   deploy:
     name: 3 Deploy and Verify Kubernetes
     needs: images
-    runs-on: ubuntu-latest
-    environment: production
+    runs-on: self-hosted
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v4
-
-      - name: Configure Kubernetes connection
-        env:
-          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+      - name: Verify cluster connection
         run: |
-          mkdir -p "${HOME}/.kube"
-          echo "${KUBE_CONFIG}" | base64 --decode > "${HOME}/.kube/config"
-          chmod 600 "${HOME}/.kube/config"
           kubectl cluster-info
           kubectl get nodes -o wide
-
-      - name: Apply Kubernetes production manifests
-        run: kubectl apply -k k8s
 
       - name: Deploy commit images
         run: |
