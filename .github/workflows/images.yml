@@ -57,7 +57,7 @@ jobs:
     needs: test
     runs-on: self-hosted
     env:
-      DOCKER_CONFIG: ${{ runner.temp }}/stockmaster-docker-config
+      DOCKER_CONFIG: /tmp/stockmaster-docker-config-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
