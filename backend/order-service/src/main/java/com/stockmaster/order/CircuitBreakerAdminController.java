@@ -41,7 +41,7 @@ public class CircuitBreakerAdminController {
 
     /** 强制打开熔断器：之后所有调用被直接拒绝，触发降级。 */
     @PostMapping("/{name}/force-open")
-    public ApiResponse<Map<String, Object>> forceOpen(@PathVariable String name) {
+    public ApiResponse<Map<String, Object>> forceOpen(@PathVariable("name") String name) {
         CircuitBreaker cb = registry.circuitBreaker(name);
         cb.transitionToForcedOpenState();
         return ApiResponse.ok(describe(cb));
@@ -49,7 +49,7 @@ public class CircuitBreakerAdminController {
 
     /** 复位熔断器：回到 CLOSED 并清空统计。 */
     @PostMapping("/{name}/reset")
-    public ApiResponse<Map<String, Object>> reset(@PathVariable String name) {
+    public ApiResponse<Map<String, Object>> reset(@PathVariable("name") String name) {
         CircuitBreaker cb = registry.circuitBreaker(name);
         cb.reset();
         return ApiResponse.ok(describe(cb));
