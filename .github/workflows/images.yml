@@ -57,7 +57,7 @@ jobs:
     needs: test
     runs-on: self-hosted
     env:
-      DOCKER_CONFIG: /Users/ricardo/actions-runner/.docker
+      DOCKER_CONFIG: ${{ runner.temp }}/stockmaster-docker-config
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -72,6 +72,9 @@ jobs:
       - name: Package backend jars
         working-directory: backend
         run: mvn --batch-mode -DskipTests package
+
+      - name: Prepare isolated Docker config
+        run: mkdir -p "${DOCKER_CONFIG}"
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
