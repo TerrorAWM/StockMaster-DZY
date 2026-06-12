@@ -56,6 +56,8 @@ jobs:
     name: 2 Build and Push Images
     needs: test
     runs-on: self-hosted
+    env:
+      DOCKER_CONFIG: /Users/ricardo/actions-runner/.docker
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -98,6 +100,8 @@ jobs:
     name: 3 Deploy and Verify Kubernetes
     needs: images
     runs-on: self-hosted
+    env:
+      KUBECONFIG: /Users/ricardo/.kube/stockmaster-config
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
